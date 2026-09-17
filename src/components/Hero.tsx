@@ -12,7 +12,7 @@ export function Hero({
   return (
     <header className="hero-stripes rounded-b-none sm:rounded-b-[12px]">
       <div className="mx-auto max-w-[1140px] px-6 py-10 sm:py-14">
-        <Logo className="text-sm sm:text-base" />
+        <Logo />
         {eyebrow && (
           <p className="mt-4 text-navy-stripe/90 uppercase tracking-widest text-xs sm:text-sm font-semibold text-[color:#a9c0f2]">
             {eyebrow}

@@ -1,14 +1,14 @@
-/**
- * Placeholder knockout wordmark. The brief calls for the white Nexus logo
- * embedded in the Abide Leader's Guide; swap this for that PNG at
- * /public/nexus-logo.png and render an <Image> instead once it's available.
- */
+import Image from "next/image";
+
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <span
-      className={`font-heading text-white tracking-wide uppercase ${className}`}
-    >
-      Nexus
-    </span>
+    <Image
+      src="/nexus-logo.png"
+      alt="Nexus"
+      width={1335}
+      height={605}
+      priority
+      className={`h-6 w-auto sm:h-8 ${className}`}
+    />
   );
 }
