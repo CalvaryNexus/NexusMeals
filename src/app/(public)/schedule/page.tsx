@@ -22,14 +22,6 @@ export default async function SchedulePage() {
         subtitle="Families and volunteers sign up to bring the Sunday night meal for our students. Pick an open week below to get started."
       />
       <main className="mx-auto max-w-[1140px] px-6 py-10">
-        <div className="mb-6">
-          <Link
-            href="/overview"
-            className="text-navy-text font-semibold underline underline-offset-4"
-          >
-            See what to know before you sign up
-          </Link>
-        </div>
         <ul className="grid gap-4 sm:grid-cols-2">
           {weeks.map((week) => (
             <li
@@ -55,7 +47,7 @@ export default async function SchedulePage() {
               <div className="mt-4">
                 {(week.state === "open" || week.state === "urgent") && (
                   <Link
-                    href={`/signup?date=${week.date}`}
+                    href={`/overview?date=${week.date}`}
                     className="tap-target inline-flex items-center justify-center rounded-[8px] bg-navy px-5 py-2.5 text-white font-semibold hover:bg-navy-text transition-colors"
                   >
                     Sign up

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Hero } from "@/components/Hero";
 import { getOverview, getSettings } from "@/lib/settings";
+import { getWeekViews } from "@/lib/weeks";
 import { sanitizeRichText } from "@/lib/sanitize";
-import { formatTime12h } from "@/lib/schedule";
+import { formatDateLong, formatTime12h } from "@/lib/schedule";
 
 export const dynamic = "force-dynamic";
 
@@ -43,15 +44,39 @@ function ListSection({
   );
 }
 
-export default async function OverviewPage() {
+export default async function OverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date: requestedDate } = await searchParams;
   const [overview, settings] = await Promise.all([
     getOverview(),
     getSettings(),
   ]);
 
+  let signupDate: string | undefined;
+  if (requestedDate) {
+    const weeks = await getWeekViews(settings.scheduleWindowWeeks, settings, overview);
+    const match = weeks.find(
+      (w) =>
+        w.date === requestedDate &&
+        (w.state === "open" || w.state === "urgent"),
+    );
+    if (match) signupDate = match.date;
+  }
+
   return (
     <>
-      <Hero eyebrow="Before you sign up" title="What to know about Nexus" />
+      <Hero
+        eyebrow="Before you sign up"
+        title="What to know about Nexus"
+        subtitle={
+          signupDate
+            ? `Here's what to know before you sign up for ${formatDateLong(signupDate)}.`
+            : undefined
+        }
+      />
       <main className="mx-auto max-w-[1140px] px-6 py-10 space-y-6">
         <Section title="Headcount">
           <p>Plan for about {overview.headcount} students.</p>
@@ -132,12 +157,21 @@ export default async function OverviewPage() {
         </Section>
 
         <div className="pt-4">
-          <Link
-            href="/schedule"
-            className="tap-target inline-flex items-center justify-center rounded-[8px] bg-navy px-5 py-2.5 text-white font-semibold hover:bg-navy-text transition-colors"
-          >
-            View the schedule
-          </Link>
+          {signupDate ? (
+            <Link
+              href={`/signup?date=${signupDate}`}
+              className="tap-target inline-flex items-center justify-center rounded-[8px] bg-navy px-6 py-3 text-white font-semibold hover:bg-navy-text transition-colors"
+            >
+              Continue to sign up
+            </Link>
+          ) : (
+            <Link
+              href="/schedule"
+              className="tap-target inline-flex items-center justify-center rounded-[8px] bg-navy px-5 py-2.5 text-white font-semibold hover:bg-navy-text transition-colors"
+            >
+              View the schedule
+            </Link>
+          )}
         </div>
       </main>
     </>
