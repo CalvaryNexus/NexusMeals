@@ -1,86 +1,94 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { Hero } from "@/components/Hero";
-import { WeekBadge } from "@/components/WeekBadge";
 import { getSettings, getOverview } from "@/lib/settings";
 import { getWeekViews } from "@/lib/weeks";
-import { formatDateLong, formatTime12h } from "@/lib/schedule";
+import {
+  formatDateLong,
+  formatDateMedium,
+  formatDayOfMonth,
+  formatMonthShort,
+  formatMonthYear,
+  formatRelativeSunday,
+  formatTime12h,
+} from "@/lib/schedule";
+import { ScheduleBoard, type WeekCard } from "./ScheduleBoard";
+import { TakenNotice } from "./TakenNotice";
 
 export const dynamic = "force-dynamic";
 
-export default async function SchedulePage() {
-  const [settings, overview] = await Promise.all([
+export const metadata: Metadata = {
+  title: "Schedule",
+  description: "Pick a Sunday to bring dinner for Nexus students.",
+};
+
+export default async function SchedulePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ taken?: string }>;
+}) {
+  const [{ taken }, settings, overview] = await Promise.all([
+    searchParams,
     getSettings(),
     getOverview(),
   ]);
-  const weeks = await getWeekViews(settings.scheduleWindowWeeks, settings, overview);
+  const weeks = await getWeekViews(
+    settings.scheduleWindowWeeks,
+    settings,
+    overview,
+  );
+
+  const cards: WeekCard[] = weeks.map((week) => ({
+    date: week.date,
+    state: week.state,
+    color: week.color,
+    label: week.label,
+    meal: week.meal,
+    arrivalLabel: formatTime12h(week.arrivalTime),
+    dateLong: formatDateLong(week.date),
+    dateMedium: formatDateMedium(week.date),
+    monthShort: formatMonthShort(week.date),
+    dayOfMonth: formatDayOfMonth(week.date),
+    monthYear: formatMonthYear(week.date),
+    relative: formatRelativeSunday(week.date),
+  }));
+
+  const openCount = cards.filter(
+    (w) => w.state === "open" || w.state === "urgent",
+  ).length;
+  const coveredCount = cards.filter((w) => w.state === "covered").length;
+  const nextOpen = cards.find((w) => w.state === "open" || w.state === "urgent");
 
   return (
     <>
       <Hero
         eyebrow="Nexus Sunday Meal"
         title="Bring dinner for Nexus"
-        subtitle="Families and volunteers sign up to bring the Sunday night meal for our students. Pick an open week below to get started."
+        subtitle="Families and volunteers take turns bringing the Sunday night meal for our students. Pick a Sunday that works for you — we'll walk you through the rest."
+        stats={[
+          { value: String(openCount), label: "Open" },
+          { value: String(coveredCount), label: "Covered" },
+          { value: `~${overview.headcount}`, label: "Students" },
+        ]}
       />
-      <main className="mx-auto max-w-[1140px] px-6 py-10">
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {weeks.map((week) => (
-            <li
-              key={week.date}
-              className="rounded-[12px] border border-rule bg-paper p-5 shadow-sm"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-ink">
-                    {formatDateLong(week.date)}
-                  </p>
-                  <p className="text-ink-soft text-sm mt-1">
-                    Arrive by {formatTime12h(week.arrivalTime)}
-                  </p>
-                </div>
-                <WeekBadge
-                  state={week.state}
-                  color={week.color}
-                  label={week.state === "no_nexus" ? week.label : undefined}
-                />
-              </div>
 
-              <div className="mt-4">
-                {(week.state === "open" || week.state === "urgent") && (
-                  <Link
-                    href={`/overview?date=${week.date}`}
-                    className="tap-target inline-flex items-center justify-center rounded-[8px] bg-navy px-5 py-2.5 text-white font-semibold hover:bg-navy-text transition-colors"
-                  >
-                    Sign up
-                  </Link>
-                )}
-                {week.state === "covered" && (
-                  <p className="text-ink">
-                    <span className="text-ok font-semibold">Covered:</span>{" "}
-                    {week.meal}
-                  </p>
-                )}
-                {week.state === "no_nexus" && (
-                  <p className="text-ink-soft">
-                    {week.label ?? "No Nexus this week"}
-                  </p>
-                )}
-                {week.state === "closed" && (
-                  <p className="text-need">
-                    Still need help? Contact us at{" "}
-                    <a href={`mailto:${settings.contactEmail}`} className="underline">
-                      {settings.contactEmail}
-                    </a>{" "}
-                    or{" "}
-                    <a href={`tel:${settings.contactPhone}`} className="underline">
-                      {settings.contactPhone}
-                    </a>
-                    .
-                  </p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+      <main className="mx-auto max-w-[1140px] px-6 py-10">
+        {taken === "1" && <TakenNotice />}
+
+        {nextOpen && (
+          <p className="mb-6 text-sm text-ink-soft">
+            The soonest Sunday that still needs a meal is{" "}
+            <span className="font-semibold text-navy-text">
+              {nextOpen.dateLong}
+            </span>
+            .
+          </p>
+        )}
+
+        <ScheduleBoard
+          weeks={cards}
+          contactEmail={settings.contactEmail}
+          contactPhone={settings.contactPhone}
+        />
       </main>
     </>
   );

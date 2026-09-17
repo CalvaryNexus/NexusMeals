@@ -1,6 +1,7 @@
 import { requireOwner } from "@/lib/session";
 import { listAdmins } from "@/lib/auth";
 import { AccountsPanel } from "./AccountsPanel";
+import { PageHeader } from "../PageHeader";
 
 export default async function AdminAccountsPage() {
   const admin = await requireOwner();
@@ -8,7 +9,10 @@ export default async function AdminAccountsPage() {
 
   return (
     <div>
-      <h1 className="font-heading text-navy-text text-2xl mb-4">Accounts</h1>
+      <PageHeader
+        title="Accounts"
+        description="Who can sign in to the Nexus Meals admin."
+      />
       <AccountsPanel admins={admins} currentAdminId={admin.id} />
     </div>
   );

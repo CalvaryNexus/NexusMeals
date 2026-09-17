@@ -1,6 +1,7 @@
 import { requireOwner } from "@/lib/session";
 import { getSettings } from "@/lib/settings";
 import { SettingsForm } from "./SettingsForm";
+import { PageHeader } from "../PageHeader";
 
 export default async function AdminSettingsPage() {
   await requireOwner();
@@ -8,7 +9,10 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-      <h1 className="font-heading text-navy-text text-2xl mb-4">Settings</h1>
+      <PageHeader
+        title="Settings"
+        description="Location, contact details, and the rules the schedule runs on."
+      />
       <SettingsForm initial={settings} />
     </div>
   );

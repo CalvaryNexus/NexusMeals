@@ -1,6 +1,7 @@
 import { requireOwner } from "@/lib/session";
 import { getOverview } from "@/lib/settings";
 import { OverviewForm } from "./OverviewForm";
+import { PageHeader } from "../PageHeader";
 
 export default async function AdminOverviewPage() {
   await requireOwner();
@@ -8,7 +9,10 @@ export default async function AdminOverviewPage() {
 
   return (
     <div>
-      <h1 className="font-heading text-navy-text text-2xl mb-4">Overview</h1>
+      <PageHeader
+        title="Overview"
+        description={"Everything on the public \u201cWhat to know\u201d page."}
+      />
       <OverviewForm initial={overview} />
     </div>
   );

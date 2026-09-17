@@ -1,22 +1,34 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/session";
 import { getOverview, getSettings } from "@/lib/settings";
 import { getWeekViews } from "@/lib/weeks";
 import { formatDateLong } from "@/lib/schedule";
 import { ManualSignupForm } from "../ManualSignupForm";
+import { PageHeader } from "../../PageHeader";
 
 export default async function NewSignupPage() {
   await requireAdmin();
   const [settings, overview] = await Promise.all([getSettings(), getOverview()]);
-  const weeks = await getWeekViews(settings.scheduleWindowWeeks, settings, overview);
+  const weeks = await getWeekViews(
+    settings.scheduleWindowWeeks,
+    settings,
+    overview,
+  );
   const available = weeks.filter((w) => w.state !== "no_nexus" && !w.signup);
 
   return (
     <div>
-      <h1 className="font-heading text-navy-text text-2xl mb-4">
-        Add a signup
-      </h1>
+      <PageHeader
+        title="Add a signup"
+        description="For volunteers who sign up in person, by phone, or by email."
+      />
       {available.length === 0 ? (
-        <p className="text-ink-soft">No open weeks available.</p>
+        <div className="panel px-5 py-8 text-center text-ink-soft">
+          <p>Every Sunday in the window already has a signup.</p>
+          <Link href="/admin" className="btn btn-secondary btn-sm mt-4">
+            Back to the dashboard
+          </Link>
+        </div>
       ) : (
         <ManualSignupForm
           mode="create"

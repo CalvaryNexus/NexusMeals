@@ -160,3 +160,66 @@ export function formatTime12h(time: string): string {
   const hour12 = h % 12 === 0 ? 12 : h % 12;
   return `${hour12}:${pad2(m)} ${period}`;
 }
+
+function utcDateFromYMD(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12));
+}
+
+/** "September 2026" — used for the month dividers on the schedule. */
+export function formatMonthYear(dateStr: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    month: "long",
+    year: "numeric",
+  }).format(utcDateFromYMD(dateStr));
+}
+
+/** "Sep" — the stacked month label on a week card. */
+export function formatMonthShort(dateStr: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    month: "short",
+  }).format(utcDateFromYMD(dateStr));
+}
+
+/** "21" — the stacked day number on a week card. */
+export function formatDayOfMonth(dateStr: string): string {
+  return String(utcDateFromYMD(dateStr).getUTCDate());
+}
+
+/**
+ * A human-scale description of how far out a Sunday is, so the schedule reads
+ * like a conversation ("This Sunday") rather than a list of dates.
+ */
+export function formatRelativeSunday(
+  dateStr: string,
+  now: Date = new Date(),
+): string {
+  const days = daysBetweenYMD(chicagoTodayYMD(now), dateStr);
+  if (days < 0) return "Past";
+  if (days === 0) return "Today";
+  if (days <= 7) return "This Sunday";
+  if (days <= 14) return "Next Sunday";
+  const weeks = Math.round(days / 7);
+  return `In ${weeks} weeks`;
+}
+
+/** "September 20, 2026" — the weekday is redundant on a page about Sundays. */
+export function formatDateMedium(dateStr: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(utcDateFromYMD(dateStr));
+}
+
+/** "September 20" — compact enough to sit inside a button label. */
+export function formatDateNoYear(dateStr: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    month: "long",
+    day: "numeric",
+  }).format(utcDateFromYMD(dateStr));
+}

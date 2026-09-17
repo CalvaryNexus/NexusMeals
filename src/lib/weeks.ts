@@ -27,7 +27,9 @@ export async function getWeekViews(
     const signup = claimId ? signupById.get(claimId) : undefined;
     const computed = computeWeekState({
       date,
-      hasOverride: !!override,
+      // Only a "No Nexus" status takes the week off the schedule. An override
+      // doc that just carries an arrivalOverride is still a normal week.
+      hasOverride: override?.status === "no_nexus",
       hasClaim: !!claimId,
       settings,
       now,

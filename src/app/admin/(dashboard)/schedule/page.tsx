@@ -1,25 +1,36 @@
 import { requireOwner } from "@/lib/session";
 import { getOverview, getSettings } from "@/lib/settings";
 import { getWeekViews } from "@/lib/weeks";
-import { formatDateLong, formatTime12h } from "@/lib/schedule";
+import {
+  formatDateMedium,
+  formatRelativeSunday,
+  formatTime12h,
+} from "@/lib/schedule";
 import { AdminWeekRow } from "./AdminWeekRow";
+import { PageHeader } from "../PageHeader";
 
 export default async function AdminSchedulePage() {
   await requireOwner();
   const [settings, overview] = await Promise.all([getSettings(), getOverview()]);
-  const weeks = await getWeekViews(settings.scheduleWindowWeeks, settings, overview);
+  const weeks = await getWeekViews(
+    settings.scheduleWindowWeeks,
+    settings,
+    overview,
+  );
 
   return (
     <div>
-      <h1 className="font-heading text-navy-text text-2xl mb-4">
-        Schedule management
-      </h1>
-      <div className="space-y-4">
+      <PageHeader
+        title="Schedule management"
+        description="Take a Sunday off the schedule, or override the arrival time for a single week."
+      />
+      <div className="space-y-3">
         {weeks.map((week) => (
           <AdminWeekRow
             key={week.date}
             date={week.date}
-            dateLabel={formatDateLong(week.date)}
+            dateLabel={formatDateMedium(week.date)}
+            relative={formatRelativeSunday(week.date)}
             state={week.state}
             meal={week.meal}
             hasSignup={!!week.signup}

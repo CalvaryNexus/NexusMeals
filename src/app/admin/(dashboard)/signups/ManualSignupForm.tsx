@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
+import { AlertIcon, InfoIcon } from "@/components/Icons";
+import { formatUsPhone } from "@/lib/phone";
 
 const CONSENT_LINE =
   "Your contact info is only used by the Nexus team to coordinate your meal and send reminders.";
@@ -29,12 +32,14 @@ export function ManualSignupForm({
   };
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [date, setDate] = useState(initial?.date ?? weeks?.[0]?.date ?? "");
   const [name, setName] = useState(initial?.name ?? "");
   const [email, setEmail] = useState(initial?.email ?? "");
   const [phone, setPhone] = useState(initial?.phone ?? "");
   const [meal, setMeal] = useState(initial?.meal ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -43,7 +48,9 @@ export function ManualSignupForm({
     setSubmitting(true);
 
     const url =
-      mode === "create" ? "/api/admin/signups" : `/api/admin/signups/${signupId}`;
+      mode === "create"
+        ? "/api/admin/signups"
+        : `/api/admin/signups/${signupId}`;
     const method = mode === "create" ? "POST" : "PATCH";
     const payload =
       mode === "create"
@@ -58,18 +65,20 @@ export function ManualSignupForm({
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       setError(data.error ?? "Something went wrong.");
+      setErrorKey((k) => k + 1);
       setSubmitting(false);
       return;
     }
+    toast(mode === "create" ? "Signup added." : "Changes saved.");
     router.push("/admin");
     router.refresh();
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 max-w-xl">
+    <form onSubmit={handleSubmit} className="panel max-w-xl space-y-5 p-6">
       {mode === "create" && weeks && (
         <div>
-          <label htmlFor="date" className="block font-semibold mb-1">
+          <label htmlFor="date" className="label">
             Week
           </label>
           <select
@@ -77,7 +86,7 @@ export function ManualSignupForm({
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
-            className="tap-target w-full rounded-[8px] border border-rule px-3 py-2"
+            className="field"
           >
             {weeks.map((w) => (
               <option key={w.date} value={w.date}>
@@ -89,7 +98,7 @@ export function ManualSignupForm({
       )}
 
       <div>
-        <label htmlFor="name" className="block font-semibold mb-1">
+        <label htmlFor="name" className="label">
           Full name
         </label>
         <input
@@ -98,41 +107,47 @@ export function ManualSignupForm({
           onChange={(e) => setName(e.target.value)}
           required
           maxLength={120}
-          className="tap-target w-full rounded-[8px] border border-rule px-3 py-2"
+          autoComplete="off"
+          className="field"
         />
       </div>
 
-      <div>
-        <label htmlFor="email" className="block font-semibold mb-1">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          maxLength={200}
-          className="tap-target w-full rounded-[8px] border border-rule px-3 py-2"
-        />
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor="email" className="label">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            maxLength={200}
+            autoComplete="off"
+            className="field"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="phone" className="label">
+            Primary phone
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(formatUsPhone(e.target.value))}
+            required
+            placeholder="(555) 555-5555"
+            autoComplete="off"
+            className="field"
+          />
+        </div>
       </div>
 
       <div>
-        <label htmlFor="phone" className="block font-semibold mb-1">
-          Primary phone
-        </label>
-        <input
-          id="phone"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          required
-          className="tap-target w-full rounded-[8px] border border-rule px-3 py-2"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="meal" className="block font-semibold mb-1">
+        <label htmlFor="meal" className="label">
           Meal description
         </label>
         <textarea
@@ -142,22 +157,36 @@ export function ManualSignupForm({
           required
           maxLength={280}
           rows={3}
-          className="w-full rounded-[8px] border border-rule px-3 py-2"
+          className="field"
         />
+        <p className="hint text-right tabular-nums">{meal.length}/280</p>
       </div>
 
-      <p className="text-ink-soft text-sm rounded-[8px] bg-card border border-card-line p-3">
-        Read to the volunteer: &ldquo;{CONSENT_LINE}&rdquo;
+      <p className="flex items-start gap-2.5 rounded-[12px] border border-card-line bg-card p-3.5 text-sm text-ink">
+        <InfoIcon className="mt-0.5 h-4 w-4 flex-none text-navy-stripe" />
+        <span>
+          Read to the volunteer: &ldquo;{CONSENT_LINE}&rdquo;
+        </span>
       </p>
 
-      {error && <p className="text-need font-semibold">{error}</p>}
+      {error && (
+        <p
+          key={errorKey}
+          role="alert"
+          className="shake flex items-center gap-2 rounded-[12px] border border-[color:var(--need)]/30 bg-[color:var(--need)]/8 px-4 py-3 text-sm font-semibold text-[color:var(--need)]"
+        >
+          <AlertIcon className="h-4 w-4 flex-none" />
+          {error}
+        </p>
+      )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="tap-target inline-flex items-center justify-center rounded-[8px] bg-navy px-6 py-2.5 text-white font-semibold hover:bg-navy-text transition-colors disabled:opacity-60"
-      >
-        {submitting ? "Saving..." : mode === "create" ? "Add signup" : "Save changes"}
+      <button type="submit" disabled={submitting} className="btn btn-primary">
+        {submitting && <span className="spinner" aria-hidden />}
+        {submitting
+          ? "Saving..."
+          : mode === "create"
+            ? "Add signup"
+            : "Save changes"}
       </button>
     </form>
   );

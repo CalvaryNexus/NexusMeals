@@ -1,15 +1,7 @@
 import { z } from "zod";
+import { isValidUsPhone } from "./phone";
 
-function normalizeUsPhoneDigits(phone: string): string {
-  return phone.replace(/\D/g, "");
-}
-
-export function isValidUsPhone(phone: string): boolean {
-  const digits = normalizeUsPhoneDigits(phone);
-  if (digits.length === 10) return true;
-  if (digits.length === 11 && digits.startsWith("1")) return true;
-  return false;
-}
+export { isValidUsPhone };
 
 export const usPhoneSchema = z
   .string()

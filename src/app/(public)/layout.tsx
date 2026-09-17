@@ -1,4 +1,6 @@
 import { Footer } from "@/components/Footer";
+import { SiteNav } from "@/components/SiteNav";
+import { ToastProvider } from "@/components/Toast";
 import { getSettings } from "@/lib/settings";
 
 export default async function PublicLayout({
@@ -8,12 +10,15 @@ export default async function PublicLayout({
 }) {
   const settings = await getSettings();
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="flex-1">{children}</div>
-      <Footer
-        contactEmail={settings.contactEmail}
-        contactPhone={settings.contactPhone}
-      />
-    </div>
+    <ToastProvider>
+      <div className="flex min-h-screen flex-col">
+        <SiteNav />
+        <div className="flex-1">{children}</div>
+        <Footer
+          contactEmail={settings.contactEmail}
+          contactPhone={settings.contactPhone}
+        />
+      </div>
+    </ToastProvider>
   );
 }

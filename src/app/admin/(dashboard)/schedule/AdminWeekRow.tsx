@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
+import { CheckIcon, ClockIcon, MoonIcon } from "@/components/Icons";
 import type { WeekComputedState } from "@/lib/types";
 
 export function AdminWeekRow({
   date,
   dateLabel,
+  relative,
   state,
   meal,
   hasSignup,
@@ -16,6 +19,7 @@ export function AdminWeekRow({
 }: {
   date: string;
   dateLabel: string;
+  relative: string;
   state: WeekComputedState;
   meal?: string;
   hasSignup: boolean;
@@ -24,10 +28,31 @@ export function AdminWeekRow({
   defaultArrivalTime: string;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [noNexus, setNoNexus] = useState(state === "no_nexus");
   const [label, setLabel] = useState(initialLabel ?? "");
   const [arrival, setArrival] = useState(initialArrivalOverride ?? "");
   const [busy, setBusy] = useState(false);
+  const [showArrival, setShowArrival] = useState(
+    Boolean(initialArrivalOverride),
+  );
+
+  async function patch(body: Record<string, unknown>, message: string) {
+    setBusy(true);
+    const res = await fetch(`/api/admin/weeks/${date}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      toast("That didn't save. Please try again.", "error");
+      return false;
+    }
+    toast(message);
+    router.refresh();
+    return true;
+  }
 
   async function save(nextNoNexus: boolean) {
     if (nextNoNexus && hasSignup && state !== "no_nexus") {
@@ -36,99 +61,153 @@ export function AdminWeekRow({
       );
       if (!confirmed) return;
     }
-    setBusy(true);
-    await fetch(`/api/admin/weeks/${date}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const ok = await patch(
+      {
         noNexus: nextNoNexus,
         label: nextNoNexus ? label || "No Nexus" : undefined,
         arrivalOverride: arrival || null,
-      }),
-    });
-    setNoNexus(nextNoNexus);
-    router.refresh();
-    setBusy(false);
+      },
+      nextNoNexus ? "Marked as No Nexus." : "Week is back on the schedule.",
+    );
+    if (ok) setNoNexus(nextNoNexus);
   }
 
   async function saveArrival() {
-    setBusy(true);
-    await fetch(`/api/admin/weeks/${date}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ arrivalOverride: arrival || null }),
-    });
-    router.refresh();
-    setBusy(false);
+    await patch(
+      { arrivalOverride: arrival || null },
+      arrival
+        ? "Arrival time override saved."
+        : "Arrival time back to the default.",
+    );
   }
 
   return (
-    <div className="rounded-[12px] border border-rule bg-paper p-5">
+    <div
+      className={`panel p-5 transition-opacity ${noNexus ? "opacity-80" : ""} ${
+        busy ? "opacity-60" : ""
+      }`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="min-w-[200px] flex-1">
           <p className="font-semibold text-ink">{dateLabel}</p>
-          {meal && <p className="text-ink-soft text-sm">Meal: {meal}</p>}
+          <p className="mt-0.5 text-sm font-semibold text-navy-stripe">
+            {relative}
+          </p>
+          {meal && (
+            <p className="mt-1.5 text-sm text-ink-soft">
+              <span className="font-semibold text-navy-text">Meal:</span> {meal}
+            </p>
+          )}
           {hasSignup && (
-            <p className="text-ok text-sm font-semibold">Has a signup</p>
+            <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ok)]">
+              <CheckIcon className="h-4 w-4" />
+              Has a signup
+            </p>
           )}
         </div>
-        <label className="flex items-center gap-2 text-sm font-semibold">
+
+        {/* A real switch reads better than a bare checkbox in a dense list. */}
+        <label className="flex cursor-pointer select-none items-center gap-2.5 text-sm font-semibold text-ink">
+          <MoonIcon className="h-4 w-4 text-ink-faint" />
+          No Nexus
           <input
             type="checkbox"
             checked={noNexus}
             disabled={busy}
             onChange={(e) => save(e.target.checked)}
-            className="tap-target"
+            className="peer sr-only"
           />
-          No Nexus
+          <span
+            aria-hidden
+            className="relative h-6 w-11 flex-none rounded-full bg-rule transition-colors duration-200 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-[var(--shadow-1)] after:transition-transform after:duration-200 after:ease-[var(--ease-spring)] after:content-[''] peer-checked:bg-navy peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-navy-stripe"
+          />
         </label>
       </div>
 
-      {noNexus && (
-        <div className="mt-3">
-          <label className="block text-sm font-semibold mb-1">
+      <div
+        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-[var(--ease-out-soft)] ${
+          noNexus ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="min-h-0">
+          <label htmlFor={`label-${date}`} className="label">
             Public label
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <input
+              id={`label-${date}`}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="e.g. Christmas break"
-              className="tap-target flex-1 rounded-[8px] border border-rule px-3 py-2"
+              className="field flex-1"
             />
             <button
               onClick={() => save(true)}
               disabled={busy}
-              className="tap-target rounded-[8px] bg-navy px-4 py-2 text-white font-semibold"
+              className="btn btn-primary btn-sm"
             >
-              Save
+              Save label
             </button>
           </div>
         </div>
-      )}
+      </div>
 
-      <div className="mt-3">
-        <label className="block text-sm font-semibold mb-1">
-          Arrival time override
-        </label>
-        <div className="flex gap-2 items-center">
-          <input
-            type="time"
-            value={arrival}
-            onChange={(e) => setArrival(e.target.value)}
-            className="tap-target rounded-[8px] border border-rule px-3 py-2"
-          />
-          <span className="text-ink-soft text-sm">
-            Default: {defaultArrivalTime}
-          </span>
+      <div className="mt-4 border-t border-rule pt-4">
+        {!showArrival ? (
           <button
-            onClick={saveArrival}
-            disabled={busy}
-            className="tap-target rounded-[8px] border border-navy px-4 py-2 text-navy-text font-semibold"
+            type="button"
+            onClick={() => setShowArrival(true)}
+            className="btn btn-ghost btn-sm -ml-3 text-ink-soft"
           >
-            Save
+            <ClockIcon className="h-4 w-4" />
+            Override arrival time
+            <span className="text-ink-faint">({defaultArrivalTime})</span>
           </button>
-        </div>
+        ) : (
+          <div className="enter-fade">
+            <label htmlFor={`arrival-${date}`} className="label">
+              <span className="inline-flex items-center gap-1.5">
+                <ClockIcon className="h-3.5 w-3.5" />
+                Arrival time override
+              </span>
+            </label>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                id={`arrival-${date}`}
+                type="time"
+                value={arrival}
+                onChange={(e) => setArrival(e.target.value)}
+                className="field w-auto"
+              />
+              <button
+                onClick={saveArrival}
+                disabled={busy}
+                className="btn btn-secondary btn-sm"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setArrival("");
+                  setShowArrival(false);
+                  if (initialArrivalOverride) {
+                    void patch(
+                      { arrivalOverride: null },
+                      "Arrival time back to the default.",
+                    );
+                  }
+                }}
+                disabled={busy}
+                className="btn btn-ghost btn-sm"
+              >
+                {initialArrivalOverride ? "Clear" : "Cancel"}
+              </button>
+              <span className="text-sm text-ink-faint">
+                Default: {defaultArrivalTime}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

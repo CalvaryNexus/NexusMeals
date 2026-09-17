@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/session";
 import { getSignup } from "@/lib/signups";
 import { formatDateLong } from "@/lib/schedule";
+import { ArrowLeftIcon } from "@/components/Icons";
 import { ManualSignupForm } from "../ManualSignupForm";
+import { PageHeader } from "../../PageHeader";
 
 export default async function EditSignupPage({
   params,
@@ -16,10 +19,17 @@ export default async function EditSignupPage({
 
   return (
     <div>
-      <h1 className="font-heading text-navy-text text-2xl mb-1">
-        Edit signup
-      </h1>
-      <p className="text-ink-soft mb-4">{formatDateLong(signup.date)}</p>
+      <Link
+        href="/admin"
+        className="link-underline mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft"
+      >
+        <ArrowLeftIcon className="h-4 w-4" />
+        Back to the dashboard
+      </Link>
+      <PageHeader
+        title="Edit signup"
+        description={formatDateLong(signup.date)}
+      />
       <ManualSignupForm
         mode="edit"
         signupId={signup.id}
