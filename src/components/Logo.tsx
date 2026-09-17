@@ -5,10 +5,10 @@ export function Logo({ className = "" }: { className?: string }) {
     <Image
       src="/nexus-logo.png"
       alt="Nexus"
-      width={1335}
-      height={605}
+      width={1966}
+      height={514}
       priority
-      className={`h-6 w-auto sm:h-8 ${className}`}
+      className={`h-10 w-auto sm:h-14 ${className}`}
     />
   );
 }
