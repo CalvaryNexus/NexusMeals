@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
-import { HeartIcon, MailIcon, PhoneIcon } from "./Icons";
+import { MailIcon, PhoneIcon } from "./Icons";
 
 export function Footer({
   contactEmail,
@@ -15,10 +15,6 @@ export function Footer({
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Logo className="h-8 text-white" />
-            <p className="mt-3 flex items-center gap-1.5 max-w-[42ch] text-sm text-white/70">
-              <HeartIcon className="h-4 w-4 flex-none text-sun" />
-              Sunday dinner for our students, brought by people like you.
-            </p>
           </div>
 
           <div className="sm:text-right">
