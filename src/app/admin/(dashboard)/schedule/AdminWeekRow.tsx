@@ -1,9 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { useToast } from "@/components/Toast";
-import { CheckIcon, ClockIcon, MoonIcon } from "@/components/Icons";
+import {
+  ClockIcon,
+  MailIcon,
+  MoonIcon,
+  PencilIcon,
+  PhoneIcon,
+  TrashIcon,
+  UsersIcon,
+} from "@/components/Icons";
 import type { WeekComputedState } from "@/lib/types";
 
 export function AdminWeekRow({
@@ -13,6 +23,10 @@ export function AdminWeekRow({
   state,
   meal,
   hasSignup,
+  signupId,
+  signupName,
+  signupEmail,
+  signupPhone,
   initialLabel,
   initialArrivalOverride,
   defaultArrivalTime,
@@ -23,6 +37,10 @@ export function AdminWeekRow({
   state: WeekComputedState;
   meal?: string;
   hasSignup: boolean;
+  signupId?: string;
+  signupName?: string;
+  signupEmail?: string;
+  signupPhone?: string;
   initialLabel?: string;
   initialArrivalOverride?: string;
   defaultArrivalTime: string;
@@ -72,6 +90,21 @@ export function AdminWeekRow({
     if (ok) setNoNexus(nextNoNexus);
   }
 
+  async function removeSignup() {
+    if (!signupId) return;
+    setBusy(true);
+    const res = await fetch(`/api/admin/signups/${signupId}`, {
+      method: "DELETE",
+    });
+    setBusy(false);
+    if (!res.ok) {
+      toast("Couldn't remove that meal. Please try again.", "error");
+      return;
+    }
+    toast("Meal removed — this Sunday is open for signups again.");
+    router.refresh();
+  }
+
   async function saveArrival() {
     await patch(
       { arrivalOverride: arrival || null },
@@ -93,17 +126,7 @@ export function AdminWeekRow({
           <p className="mt-0.5 text-sm font-semibold text-navy-stripe">
             {relative}
           </p>
-          {meal && (
-            <p className="mt-1.5 text-sm text-ink-soft">
-              <span className="font-semibold text-navy-text">Meal:</span> {meal}
-            </p>
-          )}
-          {hasSignup && (
-            <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ok)]">
-              <CheckIcon className="h-4 w-4" />
-              Has a signup
-            </p>
-          )}
+
         </div>
 
         {/* A real switch reads better than a bare checkbox in a dense list. */}
@@ -123,6 +146,66 @@ export function AdminWeekRow({
           />
         </label>
       </div>
+
+      {hasSignup && signupId && (
+        <div className="mt-4 rounded-[12px] bg-paper-sunk p-4">
+          <p className="text-sm text-ink">
+            <span className="font-semibold text-navy-text">Meal:</span> {meal}
+          </p>
+
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-ink-soft">
+            {signupName && (
+              <span className="inline-flex items-center gap-1.5">
+                <UsersIcon className="h-3.5 w-3.5 flex-none" />
+                {signupName}
+              </span>
+            )}
+            {signupPhone && (
+              <a
+                href={`tel:${signupPhone}`}
+                className="link-underline inline-flex items-center gap-1.5 text-navy-text"
+              >
+                <PhoneIcon className="h-3.5 w-3.5 flex-none" />
+                {signupPhone}
+              </a>
+            )}
+            {signupEmail && (
+              <a
+                href={`mailto:${signupEmail}`}
+                className="link-underline inline-flex items-center gap-1.5 text-navy-text"
+              >
+                <MailIcon className="h-3.5 w-3.5 flex-none" />
+                {signupEmail}
+              </a>
+            )}
+          </div>
+
+          <div className="mt-3.5 flex flex-wrap items-center gap-2">
+            <Link
+              href={`/admin/signups/${signupId}`}
+              className="btn btn-sm btn-secondary"
+            >
+              <PencilIcon className="h-4 w-4" />
+              Edit meal
+            </Link>
+            <ConfirmButton
+              onConfirm={removeSignup}
+              disabled={busy}
+              confirmLabel="Tap again to remove the meal"
+              className="btn btn-sm btn-ghost text-[color:var(--need)]"
+              confirmClassName="btn btn-sm btn-danger"
+            >
+              <span className="inline-flex items-center gap-2">
+                <TrashIcon className="h-4 w-4" />
+                Remove meal
+              </span>
+            </ConfirmButton>
+            <span className="text-xs text-ink-faint">
+              Reopens the Sunday for signups. The night stays on the schedule.
+            </span>
+          </div>
+        </div>
+      )}
 
       <div
         className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-[var(--ease-out-soft)] ${

@@ -24,20 +24,25 @@ export function ConfirmButton({
 }) {
   const [armed, setArmed] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
   useEffect(() => {
     if (!armed) return;
-    function cancel() {
+    function onDocumentClick(event: MouseEvent) {
+      // Never disarm on our own click. This listener must not run before
+      // React dispatches the button's onClick — a capture-phase listener
+      // would disarm first, and React would then dispatch with the
+      // re-rendered (disarmed) handler, so the confirm could never fire.
+      if (buttonRef.current?.contains(event.target as Node)) return;
       setArmed(false);
     }
-    document.addEventListener("click", cancel, { capture: true });
-    return () => document.removeEventListener("click", cancel, { capture: true });
+    document.addEventListener("click", onDocumentClick);
+    return () => document.removeEventListener("click", onDocumentClick);
   }, [armed]);
 
-  function handleClick(e: React.MouseEvent) {
-    e.stopPropagation();
+  function handleClick() {
     if (!armed) {
       setArmed(true);
       clearTimeout(timer.current);
@@ -51,6 +56,7 @@ export function ConfirmButton({
 
   return (
     <button
+      ref={buttonRef}
       type="button"
       onClick={handleClick}
       disabled={disabled}

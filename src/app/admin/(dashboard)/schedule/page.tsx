@@ -34,6 +34,10 @@ export default async function AdminSchedulePage() {
             state={week.state}
             meal={week.meal}
             hasSignup={!!week.signup}
+            signupId={week.signup?.id}
+            signupName={week.signup?.name ?? undefined}
+            signupEmail={week.signup?.email ?? undefined}
+            signupPhone={week.signup?.phone ?? undefined}
             initialLabel={week.label}
             initialArrivalOverride={
               week.arrivalTime !== overview.arrivalTime
