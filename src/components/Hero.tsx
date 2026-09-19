@@ -1,20 +1,16 @@
 /**
- * The navy masthead every public page opens with. The `stats` slot carries a
- * short row of at-a-glance facts so the hero does real work instead of just
- * taking up space.
+ * The navy masthead every public page opens with.
  */
 export function Hero({
   eyebrow,
   title,
   subtitle,
-  stats,
   children,
   compact = false,
 }: {
   eyebrow?: string;
   title: string;
   subtitle?: string;
-  stats?: { value: string; label: string }[];
   children?: React.ReactNode;
   compact?: boolean;
 }) {
@@ -53,29 +49,8 @@ export function Hero({
           </p>
         )}
 
-        {stats && stats.length > 0 && (
-          <dl
-            className="mt-7 flex flex-wrap gap-x-7 gap-y-4 enter-up sm:gap-x-9"
-            style={{ animationDelay: "240ms" }}
-          >
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="sr-only">{stat.label}</dt>
-                <dd>
-                  <span className="display block text-2xl text-white sm:text-3xl">
-                    {stat.value}
-                  </span>
-                  <span className="mt-0.5 block text-xs font-semibold uppercase tracking-[0.1em] text-white/60">
-                    {stat.label}
-                  </span>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
-
         {children && (
-          <div className="mt-7 enter-up" style={{ animationDelay: "300ms" }}>
+          <div className="mt-7 enter-up" style={{ animationDelay: "240ms" }}>
             {children}
           </div>
         )}

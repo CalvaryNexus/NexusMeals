@@ -52,10 +52,6 @@ export default async function SchedulePage({
     relative: formatRelativeSunday(week.date),
   }));
 
-  const openCount = cards.filter(
-    (w) => w.state === "open" || w.state === "urgent",
-  ).length;
-  const coveredCount = cards.filter((w) => w.state === "covered").length;
   const nextOpen = cards.find((w) => w.state === "open" || w.state === "urgent");
 
   return (
@@ -64,11 +60,6 @@ export default async function SchedulePage({
         eyebrow="Nexus Sunday Meal"
         title="Bring dinner for Nexus"
         subtitle="Families and volunteers take turns bringing the Sunday night meal for our students. Pick a Sunday that works for you — we'll walk you through the rest."
-        stats={[
-          { value: String(openCount), label: "Open" },
-          { value: String(coveredCount), label: "Covered" },
-          { value: `~${overview.headcount}`, label: "Students" },
-        ]}
       />
 
       <main className="mx-auto max-w-[1140px] px-6 py-10">
