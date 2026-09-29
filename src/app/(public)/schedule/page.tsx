@@ -75,11 +75,7 @@ export default async function SchedulePage({
           </p>
         )}
 
-        <ScheduleBoard
-          weeks={cards}
-          contactEmail={settings.contactEmail}
-          contactPhone={settings.contactPhone}
-        />
+        <ScheduleBoard weeks={cards} contactEmail={settings.contactEmail} />
       </main>
     </>
   );

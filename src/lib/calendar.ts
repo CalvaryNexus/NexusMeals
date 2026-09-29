@@ -11,7 +11,6 @@ export interface CalendarEventInput {
   entrance: string;
   pleaseBring: string[];
   contactEmail: string;
-  contactPhone: string;
 }
 
 function toUtcArray(
@@ -36,7 +35,7 @@ function buildDescription(params: CalendarEventInput): string {
   if (params.pleaseBring.length > 0) {
     lines.push(`Please bring: ${params.pleaseBring.join(", ")}`);
   }
-  lines.push(`Team contact: ${params.contactEmail} / ${params.contactPhone}`);
+  lines.push(`Team contact: ${params.contactEmail}`);
   return lines.join("\n");
 }
 

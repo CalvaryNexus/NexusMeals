@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { AlertIcon } from "@/components/Icons";
-import { formatUsPhone } from "@/lib/phone";
 import type { Settings } from "@/lib/types";
 
 const DAYS = [
@@ -99,30 +98,20 @@ export function SettingsForm({ initial }: { initial: Settings }) {
             className="field"
           />
         </div>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor="contactEmail" className="label">
-              Contact email
-            </label>
-            <input
-              id="contactEmail"
-              type="email"
-              value={form.contactEmail}
-              onChange={(e) => set("contactEmail", e.target.value)}
-              className="field"
-            />
-          </div>
-          <div>
-            <label htmlFor="contactPhone" className="label">
-              Contact phone
-            </label>
-            <input
-              id="contactPhone"
-              value={form.contactPhone}
-              onChange={(e) => set("contactPhone", formatUsPhone(e.target.value))}
-              className="field"
-            />
-          </div>
+        <div>
+          <label htmlFor="contactEmail" className="label">
+            Contact email
+          </label>
+          <input
+            id="contactEmail"
+            type="email"
+            value={form.contactEmail}
+            onChange={(e) => set("contactEmail", e.target.value)}
+            className="field"
+          />
+          <p className="hint">
+            The only way the public pages offer to reach the team.
+          </p>
         </div>
       </Fieldset>
 

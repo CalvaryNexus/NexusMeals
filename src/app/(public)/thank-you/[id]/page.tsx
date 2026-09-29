@@ -8,11 +8,10 @@ import {
   CalendarIcon,
   CheckIcon,
   ClockIcon,
-  MailIcon,
   MapPinIcon,
-  PhoneIcon,
   UtensilsIcon,
 } from "@/components/Icons";
+import { ContactReveal } from "@/components/ContactReveal";
 import { getOverview, getSettings } from "@/lib/settings";
 import { getSignup, getWeekOverride } from "@/lib/signups";
 import {
@@ -59,7 +58,6 @@ export default async function ThankYouPage({
     entrance: settings.entrance,
     pleaseBring: overview.pleaseBring.map((i) => i.label),
     contactEmail: settings.contactEmail,
-    contactPhone: settings.contactPhone,
   };
 
   const googleUrl = buildGoogleCalendarUrl(calendarInput);
@@ -73,7 +71,7 @@ export default async function ThankYouPage({
     `Meal: ${signup.meal}`,
     `Address: ${settings.address}`,
     `Entrance: ${settings.entrance}`,
-    `Questions: ${settings.contactEmail} / ${settings.contactPhone}`,
+    `Questions: ${settings.contactEmail}`,
   ].join("\n");
 
   const recapRows = [
@@ -190,21 +188,8 @@ export default async function ThankYouPage({
                 No hard feelings — just let us know as early as you can so we
                 can reopen the week.
               </p>
-              <div className="mt-4 flex flex-col gap-2">
-                <a
-                  href={`mailto:${settings.contactEmail}`}
-                  className="link-underline inline-flex items-center gap-2 text-sm font-semibold text-navy-text"
-                >
-                  <MailIcon className="h-4 w-4 flex-none text-ink-faint" />
-                  {settings.contactEmail}
-                </a>
-                <a
-                  href={`tel:${settings.contactPhone}`}
-                  className="link-underline inline-flex items-center gap-2 text-sm font-semibold text-navy-text"
-                >
-                  <PhoneIcon className="h-4 w-4 flex-none text-ink-faint" />
-                  {settings.contactPhone}
-                </a>
+              <div className="mt-4">
+                <ContactReveal email={settings.contactEmail} />
               </div>
 
               <hr className="my-5 border-rule" />
