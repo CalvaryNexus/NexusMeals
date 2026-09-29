@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo_Black, Poppins } from "next/font/google";
 import "./globals.css";
+import { getBaseUrl } from "@/lib/baseUrl";
 
 const archivoBlack = Archivo_Black({
   variable: "--font-archivo-black",
@@ -23,9 +24,7 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   // Lets Next resolve opengraph-image.png to an absolute URL, which link
   // previews require.
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: getBaseUrl(),
   title: {
     default: SITE_NAME,
     template: "%s · Nexus Meals",
