@@ -17,6 +17,22 @@ export async function verifyPassword(
   return bcrypt.compare(password, hash);
 }
 
+// Hash of a random throwaway string, same cost as real hashes. Comparing
+// against it for unknown/disabled accounts keeps login timing uniform so
+// response time doesn't reveal which emails have accounts.
+const DUMMY_HASH =
+  "$2b$12$2yBB6F4pNCZDPegK7EdlV.bp092qo35eRGtJQPnHkJMA3gKt9Ghz.";
+
+export async function authenticate(
+  email: string,
+  password: string,
+): Promise<Admin | null> {
+  const admin = await getAdminByEmail(email);
+  const valid = await verifyPassword(password, admin?.passwordHash ?? DUMMY_HASH);
+  if (!admin || admin.disabled || !valid) return null;
+  return admin;
+}
+
 export async function getAdminByEmail(email: string): Promise<Admin | null> {
   const id = await redis.get<string>(`admin:email:${email.toLowerCase()}`);
   if (!id) return null;

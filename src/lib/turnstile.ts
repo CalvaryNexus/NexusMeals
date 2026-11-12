@@ -3,7 +3,8 @@ export async function verifyTurnstile(
   ip: string,
 ): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) return process.env.NODE_ENV !== "production";
+  // Only local `next dev` may skip verification; every other mode fails closed.
+  if (!secret) return process.env.NODE_ENV === "development";
   if (!token) return false;
 
   const res = await fetch(
@@ -16,9 +17,10 @@ export async function verifyTurnstile(
         response: token,
         remoteip: ip,
       }),
+      signal: AbortSignal.timeout(8000),
     },
-  );
-  if (!res.ok) return false;
+  ).catch(() => null);
+  if (!res || !res.ok) return false;
   const data = (await res.json()) as { success: boolean };
   return data.success === true;
 }

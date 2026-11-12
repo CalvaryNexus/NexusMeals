@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/session";
 import { manualSignupSchema } from "@/lib/validation";
 import { getSettings } from "@/lib/settings";
-import { attemptClaimAndCreateSignup, getWeekOverride } from "@/lib/signups";
-import { computeWeekState } from "@/lib/schedule";
+import { attemptClaimAndCreateSignup } from "@/lib/signups";
+import { getRequestedWeekState } from "@/lib/weeks";
 
 export async function POST(req: NextRequest) {
   const admin = await getCurrentAdmin();
@@ -22,14 +22,14 @@ export async function POST(req: NextRequest) {
   const data = parsed.data;
 
   const settings = await getSettings();
-  const override = await getWeekOverride(data.date);
-  const computed = computeWeekState({
-    date: data.date,
-    hasOverride: !!override,
-    hasClaim: false,
-    settings,
-  });
-  if (computed.state === "no_nexus") {
+  const week = await getRequestedWeekState(data.date, settings);
+  if (!week) {
+    return NextResponse.json(
+      { error: "That date isn't a Sunday on the current schedule." },
+      { status: 400 },
+    );
+  }
+  if (week.state === "no_nexus") {
     return NextResponse.json(
       { error: "That week is marked No Nexus." },
       { status: 400 },

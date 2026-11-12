@@ -11,13 +11,13 @@ import {
   ShieldIcon,
   TrashIcon,
 } from "@/components/Icons";
-import type { Admin } from "@/lib/types";
+import type { AdminSummary } from "@/lib/types";
 
 export function AccountsPanel({
   admins,
   currentAdminId,
 }: {
-  admins: Admin[];
+  admins: AdminSummary[];
   currentAdminId: string;
 }) {
   const router = useRouter();
@@ -52,7 +52,7 @@ export function AccountsPanel({
     router.refresh();
   }
 
-  async function toggleDisabled(admin: Admin) {
+  async function toggleDisabled(admin: AdminSummary) {
     const res = await fetch(`/api/admin/accounts/${admin.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -66,7 +66,7 @@ export function AccountsPanel({
     router.refresh();
   }
 
-  async function remove(admin: Admin) {
+  async function remove(admin: AdminSummary) {
     const res = await fetch(`/api/admin/accounts/${admin.id}`, {
       method: "DELETE",
     });

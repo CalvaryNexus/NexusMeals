@@ -1,22 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getClientIp, signupRatelimit } from "@/lib/ratelimit";
+import {
+  getClientIp,
+  signupRatelimit,
+  tooManyRequests,
+} from "@/lib/ratelimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { signupSchema } from "@/lib/validation";
 import { getSettings } from "@/lib/settings";
-import { getWeekOverride } from "@/lib/signups";
 import { attemptClaimAndCreateSignup } from "@/lib/signups";
-import { computeWeekState } from "@/lib/schedule";
+import { getRequestedWeekState } from "@/lib/weeks";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers);
 
-  const { success } = await signupRatelimit.limit(ip);
-  if (!success) {
-    return NextResponse.json(
-      { error: "Too many requests. Please try again later." },
-      { status: 429 },
-    );
-  }
+  const limit = await signupRatelimit.limit(ip);
+  if (!limit.success) return tooManyRequests(limit.reset);
 
   const body = await req.json().catch(() => null);
   if (!body) {
@@ -45,14 +43,8 @@ export async function POST(req: NextRequest) {
   }
 
   const settings = await getSettings();
-  const override = await getWeekOverride(data.date);
-  const computed = computeWeekState({
-    date: data.date,
-    hasOverride: !!override,
-    hasClaim: false,
-    settings,
-  });
-  if (computed.state !== "open" && computed.state !== "urgent") {
+  const week = await getRequestedWeekState(data.date, settings);
+  if (!week || (week.state !== "open" && week.state !== "urgent")) {
     return NextResponse.json(
       { error: "That week is no longer available to sign up for." },
       { status: 400 },

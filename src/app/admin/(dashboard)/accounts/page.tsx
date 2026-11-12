@@ -5,7 +5,15 @@ import { PageHeader } from "../PageHeader";
 
 export default async function AdminAccountsPage() {
   const admin = await requireOwner();
-  const admins = await listAdmins();
+  const admins = (await listAdmins()).map(
+    ({ id, email, role, disabled, createdAt }) => ({
+      id,
+      email,
+      role,
+      disabled,
+      createdAt,
+    }),
+  );
 
   return (
     <div>

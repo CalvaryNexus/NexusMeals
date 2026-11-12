@@ -1,6 +1,38 @@
-import { computeWeekState, getScheduleWeeks } from "./schedule";
-import { getClaimSignupIds, getSignups, getWeekOverrides } from "./signups";
+import {
+  computeWeekState,
+  getScheduleWeeks,
+  type ComputedWeek,
+} from "./schedule";
+import {
+  getClaimSignupIds,
+  getSignups,
+  getWeekOverride,
+  getWeekOverrides,
+} from "./signups";
 import type { Overview, Settings, Signup, WeekView } from "./types";
+
+/**
+ * State of a week a client asked to sign up for, ignoring any existing claim
+ * (the atomic claim decides that). Null when the date isn't one of the Sundays
+ * currently on the schedule, so writes can't target arbitrary dates.
+ */
+export async function getRequestedWeekState(
+  date: string,
+  settings: Settings,
+  now: Date = new Date(),
+): Promise<ComputedWeek | null> {
+  if (!getScheduleWeeks(settings.scheduleWindowWeeks, now).includes(date)) {
+    return null;
+  }
+  const override = await getWeekOverride(date);
+  return computeWeekState({
+    date,
+    hasOverride: override?.status === "no_nexus",
+    hasClaim: false,
+    settings,
+    now,
+  });
+}
 
 export interface WeekViewWithSignup extends WeekView {
   signup?: Signup;

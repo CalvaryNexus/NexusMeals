@@ -7,10 +7,27 @@ export const usPhoneSchema = z
   .string()
   .trim()
   .min(1, "Phone number is required")
+  .max(32, "Enter a valid US phone number")
+  .regex(/^[0-9()+.\-\s]+$/, "Enter a valid US phone number")
   .refine(isValidUsPhone, "Enter a valid US phone number");
 
+function isRealCalendarDate(value: string): boolean {
+  const [y, m, d] = value.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return (
+    dt.getUTCFullYear() === y &&
+    dt.getUTCMonth() === m - 1 &&
+    dt.getUTCDate() === d
+  );
+}
+
+export const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date")
+  .refine(isRealCalendarDate, "Invalid date");
+
 export const signupSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: dateSchema,
   name: z.string().trim().min(1, "Full name is required").max(120),
   email: z.string().trim().email("Enter a valid email").max(200),
   phone: usPhoneSchema,
@@ -19,8 +36,8 @@ export const signupSchema = z.object({
     .trim()
     .min(1, "Meal description is required")
     .max(280, "Keep it under 280 characters"),
-  turnstileToken: z.string().optional(),
-  website: z.string().optional(), // honeypot; must stay empty
+  turnstileToken: z.string().max(2048).optional(),
+  website: z.string().max(200).optional(), // honeypot; must stay empty
 });
 
 export const listItemSchema = z.object({
@@ -69,6 +86,6 @@ export const createAccountSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().trim().email(),
-  password: z.string().min(1),
+  email: z.string().trim().email().max(200),
+  password: z.string().min(1).max(200),
 });

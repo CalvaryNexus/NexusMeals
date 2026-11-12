@@ -12,6 +12,14 @@ export async function PATCH(
   const auth = await requireOwnerApi();
   if (!auth.ok) return auth.response;
   const { id } = await params;
+  // The caller is an active owner, so blocking self-disable (like self-delete)
+  // guarantees at least one active owner always remains.
+  if (id === auth.admin.id) {
+    return NextResponse.json(
+      { error: "You can't disable your own account." },
+      { status: 400 },
+    );
+  }
 
   const body = await req.json().catch(() => null);
   const parsed = patchSchema.safeParse(body);

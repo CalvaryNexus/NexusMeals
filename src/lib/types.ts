@@ -63,6 +63,9 @@ export interface Admin {
   createdAt: string;
 }
 
+/** What the browser may see about an account: never the password hash. */
+export type AdminSummary = Omit<Admin, "passwordHash">;
+
 export type WeekComputedState =
   | "open"
   | "urgent"

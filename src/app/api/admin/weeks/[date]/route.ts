@@ -8,7 +8,16 @@ import {
   releaseClaim,
   setWeekOverride,
 } from "@/lib/signups";
+import { dateSchema } from "@/lib/validation";
+import { weekdayIndexOfYMD } from "@/lib/schedule";
 import { z } from "zod";
+
+function isSundayParam(date: string): boolean {
+  return dateSchema.safeParse(date).success && weekdayIndexOfYMD(date) === 0;
+}
+
+const badDate = () =>
+  NextResponse.json({ error: "Invalid date." }, { status: 400 });
 
 const patchSchema = z.object({
   noNexus: z.boolean().optional(),
@@ -25,6 +34,7 @@ export async function GET(
   const auth = await requireOwnerApi();
   if (!auth.ok) return auth.response;
   const { date } = await params;
+  if (!isSundayParam(date)) return badDate();
   const [override, claimId] = await Promise.all([
     getWeekOverride(date),
     getClaimSignupId(date),
@@ -39,6 +49,7 @@ export async function PATCH(
   const auth = await requireOwnerApi();
   if (!auth.ok) return auth.response;
   const { date } = await params;
+  if (!isSundayParam(date)) return badDate();
 
   const body = await req.json().catch(() => null);
   const parsed = patchSchema.safeParse(body);
