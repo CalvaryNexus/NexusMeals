@@ -5,7 +5,6 @@ export const DEFAULT_SETTINGS: Settings = {
   address: "499 West US 61 Bypass, Muscatine, IA 52761",
   entrance: 'FLC doors by the "Coffee Belt"',
   contactEmail: "tanner@calvaryonline.org",
-  contactPhone: "(509) 998-6487",
   cutoffDay: 5, // Friday
   cutoffTime: "12:00",
   scheduleWindowWeeks: 16,

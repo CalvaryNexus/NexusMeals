@@ -64,7 +64,6 @@ export const settingsSchema = z.object({
   address: z.string().trim().min(1).max(300),
   entrance: z.string().trim().min(1).max(300),
   contactEmail: z.string().trim().email().max(200),
-  contactPhone: usPhoneSchema,
   cutoffDay: z.number().int().min(0).max(6),
   cutoffTime: z.string().regex(/^\d{2}:\d{2}$/),
   scheduleWindowWeeks: z.number().int().min(1).max(52),

@@ -16,9 +16,29 @@ import { TakenNotice } from "./TakenNotice";
 
 export const dynamic = "force-dynamic";
 
+const SHARE_TITLE = "Bring dinner for Nexus";
+const SHARE_DESCRIPTION =
+  "Pick a Sunday to bring the evening meal for our students. It takes about a minute to sign up.";
+
 export const metadata: Metadata = {
   title: "Schedule",
-  description: "Pick a Sunday to bring dinner for Nexus students.",
+  description: SHARE_DESCRIPTION,
+  // This is the URL that actually gets shared, so it carries its own
+  // preview copy rather than inheriting the generic site-level text.
+  openGraph: {
+    type: "website",
+    siteName: "Nexus Meals",
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
+    locale: "en_US",
+    images: ["/opengraph-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
+    images: ["/opengraph-image.png"],
+  },
 };
 
 export default async function SchedulePage({
@@ -75,11 +95,7 @@ export default async function SchedulePage({
           </p>
         )}
 
-        <ScheduleBoard
-          weeks={cards}
-          contactEmail={settings.contactEmail}
-          contactPhone={settings.contactPhone}
-        />
+        <ScheduleBoard weeks={cards} contactEmail={settings.contactEmail} />
       </main>
     </>
   );

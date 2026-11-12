@@ -1,18 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import { requireAdminApi } from "@/lib/apiAuth";
+import { getBaseOrigin } from "@/lib/baseUrl";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const auth = await requireAdminApi();
   if (!auth.ok) return auth.response;
 
-  // A blank or localhost value (e.g. copied from .env.example) would print a
-  // QR code that goes nowhere, so only trust a real https URL.
-  const configured = process.env.NEXT_PUBLIC_BASE_URL?.trim();
-  const baseUrl = configured?.startsWith("https://")
-    ? configured.replace(/\/+$/, "")
-    : req.nextUrl.origin;
-  const url = `${baseUrl}/schedule`;
+  const url = `${getBaseOrigin()}/schedule`;
   const buffer = await QRCode.toBuffer(url, {
     type: "png",
     width: 512,

@@ -29,7 +29,6 @@ export async function GET(
     entrance: settings.entrance,
     pleaseBring: overview.pleaseBring.map((i) => i.label),
     contactEmail: settings.contactEmail,
-    contactPhone: settings.contactPhone,
   });
 
   return new NextResponse(ics, {

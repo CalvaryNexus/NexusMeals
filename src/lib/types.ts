@@ -9,7 +9,6 @@ export interface Settings {
   address: string;
   entrance: string;
   contactEmail: string;
-  contactPhone: string;
   cutoffDay: number; // 0=Sun .. 6=Sat, day before which signups close
   cutoffTime: string; // "HH:mm" 24h, America/Chicago
   scheduleWindowWeeks: number;

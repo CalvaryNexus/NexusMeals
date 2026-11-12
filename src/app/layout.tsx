@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo_Black, Poppins } from "next/font/google";
 import "./globals.css";
+import { getBaseUrl } from "@/lib/baseUrl";
 
 const archivoBlack = Archivo_Black({
   variable: "--font-archivo-black",
@@ -16,12 +17,35 @@ const poppins = Poppins({
   display: "swap",
 });
 
+const SITE_NAME = "Nexus Meals";
+const DESCRIPTION =
+  "Sign up to bring the Sunday evening meal for Nexus students.";
+
 export const metadata: Metadata = {
+  // Lets Next resolve opengraph-image.png to an absolute URL, which link
+  // previews require.
+  metadataBase: getBaseUrl(),
   title: {
-    default: "Nexus Meals",
+    default: SITE_NAME,
     template: "%s · Nexus Meals",
   },
-  description: "Sign up to bring the Sunday night Nexus meal.",
+  description: DESCRIPTION,
+  applicationName: SITE_NAME,
+  // Without these, link previews (BAND, iMessage, Facebook, WhatsApp) fall
+  // back to scraping visible page text, which produced a run-on of the nav
+  // and footer links.
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: DESCRIPTION,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {

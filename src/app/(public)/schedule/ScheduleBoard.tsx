@@ -7,11 +7,10 @@ import {
   ArrowRightIcon,
   CheckIcon,
   ClockIcon,
-  MailIcon,
   MoonIcon,
-  PhoneIcon,
   UtensilsIcon,
 } from "@/components/Icons";
+import { ContactReveal } from "@/components/ContactReveal";
 import type { WeekColor, WeekComputedState } from "@/lib/types";
 
 export interface WeekCard {
@@ -49,11 +48,9 @@ function isOpen(week: WeekCard) {
 export function ScheduleBoard({
   weeks,
   contactEmail,
-  contactPhone,
 }: {
   weeks: WeekCard[];
   contactEmail: string;
-  contactPhone: string;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -144,7 +141,6 @@ export function ScheduleBoard({
                     week={week}
                     delay={Math.min(gi * 40 + i * 45, 400)}
                     contactEmail={contactEmail}
-                    contactPhone={contactPhone}
                   />
                 ))}
               </ul>
@@ -168,12 +164,10 @@ function WeekCardItem({
   week,
   delay,
   contactEmail,
-  contactPhone,
 }: {
   week: WeekCard;
   delay: number;
   contactEmail: string;
-  contactPhone: string;
 }) {
   const open = isOpen(week);
   const quiet = week.state === "no_nexus";
@@ -260,21 +254,8 @@ function WeekCardItem({
             <p className="mt-1.5 text-ink-soft">
               Still able to help? Reach out and we&apos;ll sort it out.
             </p>
-            <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1">
-              <a
-                href={`mailto:${contactEmail}`}
-                className="link-underline inline-flex items-center gap-1.5 font-semibold text-navy-text"
-              >
-                <MailIcon className="h-3.5 w-3.5" />
-                {contactEmail}
-              </a>
-              <a
-                href={`tel:${contactPhone}`}
-                className="link-underline inline-flex items-center gap-1.5 font-semibold text-navy-text"
-              >
-                <PhoneIcon className="h-3.5 w-3.5" />
-                {contactPhone}
-              </a>
+            <div className="mt-2.5">
+              <ContactReveal email={contactEmail} />
             </div>
           </div>
         )}
