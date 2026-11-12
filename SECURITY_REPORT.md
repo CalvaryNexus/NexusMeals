@@ -107,7 +107,7 @@ No AI, email/SMS, payment, or storage-write services.
 | `OWNER_EMAIL` / `OWNER_PASSWORD` | No | Seeds an owner login when no admins exist | In use |
 | `CRON_SECRET` | No | Triggers the purge | **Blank in production**. See CRON below |
 | `SESSION_SECRET` | No | Nothing | **Unused** (sessions are random Redis tokens); delete |
-| `NEXT_PUBLIC_BASE_URL` | Yes (not a secret) | n/a | Likely blank or `localhost` from the template |
+| `NEXT_PUBLIC_BASE_URL` | Yes (not a secret) | n/a | Blank (confirmed by commit `d7a3da5`). Harmless now: `src/lib/baseUrl.ts` falls back to Vercel's production URL |
 
 All values are Vercel "sensitive" (write-only). I never decrypted them; the
 "blank" conclusions come from creation timestamps matching the
@@ -326,7 +326,13 @@ Changed: Both APIs now use `getRequestedWeekState` (see 2.2).
 Verified: [BUG-1] Week with only an arrival override accepts a signup (400 before, 200 after).
 
 ### Also fixed: QR code target
-`NEXT_PUBLIC_BASE_URL` is likely blank or `localhost` in production, so the admin QR code probably encoded an unusable URL. `src/app/api/admin/qr/route.ts` now uses the configured value only if it's `https://`, and otherwise the request's own origin.
+`NEXT_PUBLIC_BASE_URL` is blank in production, so the admin QR code could encode an unusable URL. A parallel branch fixed this with `src/lib/baseUrl.ts`, which falls back to `VERCEL_PROJECT_PRODUCTION_URL`. I merged that branch and resolved the QR route to use that shared helper.
+
+### DEPLOY. Two branches deploy to production
+Status: NEEDS YOUR DECISION
+Found: Production was live from `claude/epic-archimedes-gs9e9z`, while this audit worked on `claude/nexusmeals-app-build-rl0vts`. Both are configured to deploy to production, so whichever branch pushes last wins. My first audit push (`d299d47`) was live for a few minutes and rolled back three features from the other branch: link-preview metadata, the contact-reveal footer, and the base-URL build fix.
+Changed: Merged that branch into this one (`6f71426`), so production now has both sets of changes. The suite still passes 43/43 on the merged code.
+Open items: Pick one branch as the only one that deploys to production, and retire the other. Otherwise a push to the stale branch can silently roll back security fixes.
 
 ---
 
@@ -388,7 +394,7 @@ None. No secret was found in the repo, git history, client bundle, logs, or this
 ## Manual actions for Tanner
 
 1. **Set `CRON_SECRET` now (urgent).** In Vercel → Settings → Environment Variables, edit `CRON_SECRET` (Production + Preview). Give it a long random value generated on your own machine (for example `openssl rand -hex 32`); never paste it into chat. Then redeploy. Until then the daily PII purge won't run.
-2. **Clean up env vars.** Delete `SESSION_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, and `TURNSTILE_SITE_KEY`, all unused or blank. Set `NEXT_PUBLIC_BASE_URL` to `https://nexus-meals.vercel.app`, or delete it.
+2. **Clean up env vars.** Delete `SESSION_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, and `TURNSTILE_SITE_KEY`, all unused or blank. `NEXT_PUBLIC_BASE_URL` is optional now: set it to `https://nexus-meals.vercel.app` or delete it.
 3. **Vercel Spend Management (hard cap).** Team Settings → Billing → Spend Management: set a monthly amount and turn on pausing production deployments when it's reached. A short outage beats a surprise bill.
 4. **Upstash budget.** Upstash console → database `upstash-kv-bistre-pillar` (ID `12143ba5…`) → set a monthly budget or limit if offered for this Marketplace-billed database. At minimum, turn on spend alerts.
 5. **Cloudflare Turnstile.** Free, no cap needed. Keep the hostname list to `nexus-meals.vercel.app` (plus any custom domain you add).
@@ -401,12 +407,13 @@ None. No secret was found in the repo, git history, client bundle, logs, or this
 
 ## Open risks (highest first)
 
-1. **Unthrottled public page loads → cost** (~$57–575/day under attack, no cap). Fix: approval B plus manual actions #3–#4.
-2. **PII purge paused until `CRON_SECRET` is set.** Fix: manual action #1.
-3. **Preview deployments read and write the production database and PII.** Fix: manual action #6.
-4. **CSP allows inline scripts**, so any future XSS sink would be exploitable. No sink exists today. Fix: approval A.
-5. **Slot squatting.** Someone who passes Turnstile can claim open Sundays with fake data. Admins can remove them. Possible follow-up: one active signup per email or phone.
-6. **No in-app password change or "log out everywhere".** Rotation works via a new owner account (manual action #10).
-7. **Per-account login limit allows a 10-minute lockout** of a known email. Accepted tradeoff.
-8. **GET export writes an audit entry; admin writes rely on SameSite alone.** Fix: approval C.
-9. **8 moderate dev-only advisories** in ESLint tooling. Revisit when `eslint-config-next` updates.
+1. **Two branches deploy to production** (see DEPLOY). A push to the stale branch could roll back these fixes. Fix: keep one production branch.
+2. **Unthrottled public page loads → cost** (~$57–575/day under attack, no cap). Fix: approval B plus manual actions #3–#4.
+3. **PII purge paused until `CRON_SECRET` is set.** Fix: manual action #1.
+4. **Preview deployments read and write the production database and PII.** Fix: manual action #6.
+5. **CSP allows inline scripts**, so any future XSS sink would be exploitable. No sink exists today. Fix: approval A.
+6. **Slot squatting.** Someone who passes Turnstile can claim open Sundays with fake data. Admins can remove them. Possible follow-up: one active signup per email or phone.
+7. **No in-app password change or "log out everywhere".** Rotation works via a new owner account (manual action #10).
+8. **Per-account login limit allows a 10-minute lockout** of a known email. Accepted tradeoff.
+9. **GET export writes an audit entry; admin writes rely on SameSite alone.** Fix: approval C.
+10. **8 moderate dev-only advisories** in ESLint tooling. Revisit when `eslint-config-next` updates.
